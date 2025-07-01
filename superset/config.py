@@ -62,6 +62,7 @@ from superset.utils.core import NO_TIME_RANGE, parse_boolean_string, QuerySource
 from superset.utils.encrypt import SQLAlchemyUtilsAdapter
 from superset.utils.log import DBEventLogger
 from superset.utils.logging_configurator import DefaultLoggingConfigurator
+from superset.custom_security_manager import CustomSecurityManager
 
 logger = logging.getLogger(__name__)
 
@@ -338,6 +339,29 @@ FAB_API_SWAGGER_UI = True
 # AUTH_LDAP : Is for LDAP
 # AUTH_REMOTE_USER : Is for using REMOTE_USER from web server
 AUTH_TYPE = AUTH_DB
+AUTH_USER_REGISTRATION = True
+AUTH_USER_REGISTRATION_ROLE = "Public"
+
+OAUTH_PROVIDERS = [
+    {
+        'name': 'google',
+        'icon': 'fa-google',
+        'token_key': 'access_token',
+        'remote_app': {
+            'client_id': '759404372358-7o10v3ubmcru19gmlmhhc74sh50e091g.apps.googleusercontent.com', # todo move to environment
+            'client_secret': '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', # todo move to environment
+            'api_base_url': 'https://www.googleapis.com/oauth2/v2/',
+            'client_kwargs': {
+                'scope': 'email profile',
+            },
+            'request_token_url': None,
+            'access_token_url': 'https://oauth2.googleapis.com/token',
+            'authorize_url': 'https://accounts.google.com/o/oauth2/auth',
+        },
+    }
+]
+
+CUSTOM_SECURITY_MANAGER = CustomSecurityManager
 
 # Uncomment to setup Full admin role name
 # AUTH_ROLE_ADMIN = 'Admin'
