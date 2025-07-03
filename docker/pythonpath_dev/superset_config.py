@@ -26,8 +26,13 @@ import sys
 
 from celery.schedules import crontab
 from flask_caching.backends.filesystemcache import FileSystemCache
+from flask import flash
+from superset.security import SupersetSecurityManager
+from superset.security.manager import AUTH_OAUTH
 
 logger = logging.getLogger()
+
+ALLOWED_DOMAINS = {"spd.tech", "liquidrewards.com"}
 
 DATABASE_DIALECT = os.getenv("DATABASE_DIALECT")
 DATABASE_USER = os.getenv("DATABASE_USER")
@@ -72,6 +77,50 @@ CACHE_CONFIG = {
 }
 DATA_CACHE_CONFIG = CACHE_CONFIG
 THUMBNAIL_CACHE_CONFIG = CACHE_CONFIG
+
+class CustomSecurityManager(SupersetSecurityManager):
+    def oauth_user_info(self, provider, response=None):
+        if provider == 'google':
+            me = self.appbuilder.sm.oauth_remotes[provider].get('userinfo').json()
+            email = me.get("email", "")
+            domain = email.split('@')[-1]
+
+            if domain not in ALLOWED_DOMAINS:
+                flash(f"Email domain '{domain}' is not allowed to login.", "danger")
+                return None
+
+            return {
+                'username': email,
+                'email': email,
+                'first_name': me.get('given_name', ''),
+                'last_name': me.get('family_name', ''),
+            }
+
+OAUTH_PROVIDERS = [
+    {
+        'name': 'google',
+        'icon': 'fa-google',
+        'token_key': 'access_token',
+        'remote_app': {
+            'client_id': os.environ.get("GOOGLE_OAUTH_CLIENT_ID", ""),
+            'client_secret': os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", ""),
+            'api_base_url': 'https://www.googleapis.com/oauth2/v2/',
+            'client_kwargs': {
+                'scope': 'email profile',
+            },
+            'request_token_url': None,
+            'access_token_url': 'https://oauth2.googleapis.com/token',
+            'authorize_url': 'https://accounts.google.com/o/oauth2/auth',
+        },
+    }
+]
+
+AUTH_TYPE = AUTH_OAUTH
+RECAPTCHA_PUBLIC_KEY = ""
+RECAPTCHA_PRIVATE_KEY = ""
+AUTH_USER_REGISTRATION = True
+AUTH_USER_REGISTRATION_ROLE = "Public"
+CUSTOM_SECURITY_MANAGER = CustomSecurityManager
 
 
 class CeleryConfig:
