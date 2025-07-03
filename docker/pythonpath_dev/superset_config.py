@@ -28,7 +28,7 @@ from celery.schedules import crontab
 from flask_caching.backends.filesystemcache import FileSystemCache
 from flask import flash
 from superset.security import SupersetSecurityManager
-from superset.security.manager import AUTH_OAUTH
+from flask_appbuilder.const import AUTH_OAUTH
 
 logger = logging.getLogger()
 
