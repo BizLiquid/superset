@@ -2,6 +2,7 @@
 #    uv pip compile pyproject.toml requirements/development.in -o requirements/development.txt
 -e .
     # via -r requirements/development.in
+authlib==1.6.0
 alembic==1.15.2
     # via flask-migrate
 amqp==5.3.1
